@@ -10,3 +10,8 @@ Run server
 ```
 python manage.py runserver
 ```
+
+for commentary model
+```
+pip install google-genai
+```

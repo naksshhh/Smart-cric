@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 from myapp.ml_models.prediction_service import predict_score
 from myapp.utils.commentary_generator import generate_commentary
 from myapp.utils.fetch_match_id import get_ongoing_matches
+from datetime import datetime
+import re
+
 load_dotenv()
 
 # Basic template views
@@ -25,6 +28,71 @@ def about(request):
 api_key = os.getenv("API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+def extract_score_details(score_str):
+    match = re.match(r"(\d+)/(\d+)\s+\(([\d.]+)\)", score_str)
+    if match:
+        runs = int(match.group(1))
+        wickets = int(match.group(2))
+        overs = float(match.group(3))
+        return runs, wickets, overs
+    return None, None, None
+
+@api_view(['GET'])
+def get_match_details(request):
+    """
+    Fetch upcoming and past matches from CricAPI.
+    """
+    try:
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        
+        # Fetch matches from CricAPI
+        url = f"https://api.cricapi.com/v1/cricScore?apikey={api_key}"
+        response = requests.get(url)
+        data = response.json()
+        
+        past_matches = []
+        
+        if 'data' in data:
+            for match in data['data']:
+                # Check if it's an IPL match and date has passed
+                # match_date = match.get('dateTimeGMT', '')
+                date_time_str = match.get("dateTimeGMT",'')
+                date_time_obj = datetime.fromisoformat(date_time_str)
+                match_date = date_time_obj.strftime("%Y-%m-%d")
+                # print(match_date)
+                is_ipl = 'IPL' in match.get('series', '') or 'Indian Premier League' in match.get('series', '')
+                if is_ipl and match_date < current_date:
+                    # Format to match your required structure
+                    t1_runs, t1_wickets, t1_overs = extract_score_details(match.get("t1s"))
+                    t2_runs, t2_wickets, t2_overs = extract_score_details(match.get("t2s"))
+                    formatted_match = {
+                        'id': match.get('id'),
+                        'team1': {
+                            'name': match.get('t1', ""),
+                            # 'shortName': match.get('teamInfo', [{}])[0].get('shortname', 'UNK'),
+                            'runs': t1_runs,
+                            'wickets': t1_wickets,
+                            'overs': t1_overs
+                        },
+                        'team2': {
+                            'name': match.get('t2', 'Unknown'),
+                            # 'shortName': match.get('teamInfo', [{}, {}])[1].get('shortname', 'UNK') if len(match.get('teamInfo', [])) > 1 else 'UNK',
+                            'runs': t2_runs,
+                            'wickets': t2_wickets,
+                            'overs': t2_overs
+                        },
+                        'status': 'completed',
+                        'venue': "Unknoown",
+                        'time': '',
+                        'series': 'IPL 2025',
+                        'result': match.get('status')
+                    }
+                    past_matches.append(formatted_match)
+        # print(past_matches)
+        return JsonResponse({'pastMatches': past_matches})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 # Match data fetching views
 @api_view(['GET'])
 def get_matches(request):
@@ -37,25 +105,37 @@ def get_matches(request):
         return Response({'error': str(e)}, status=500)
 
 @api_view(['GET'])
-def fetch_live_score(request):
+def fetch_live_score():
     """Fetch ball-by-ball details for a specific match"""
-    match_id = request.GET.get('match_id')
+    match_id =get_matches.get('matches')
     if not match_id:
         return Response({'error': 'match_id is required'}, status=400)
         
-    url = f"https://api.cricapi.com/v1/match_bbb?apikey={api_key}&id={match_id}"
-    response = requests.get(url)
-    return Response(response.json())
+    url = "https://api.cricapi.com/v1/match_bbb"
+    params = {
+        "apikey": api_key,
+        "id": match_id
+    }
+
+    response = requests.get(url, params=params)
+    return JsonResponse(response.json())
 
 @api_view(['GET'])
 def fetch_match_details(request):
     """Fetch detailed information about a specific match"""
-    match_id = request.GET.get('match_id')
+    # match_id = request.GET.get('match_id', "")
+    match_d=get_ongoing_matches(api_key=api_key,series_id="d5a498c8-7596-4b93-8ab0-e0efc3345312")
+    if match_d and isinstance(match_d, list):
+        match_id = match_d[0]['id']
+        print("Match ID:", match_id)
+    else:
+        print("No ongoing matches found.")
     if not match_id:
         return Response({'error': 'match_id is required'}, status=400)
         
     url = f"https://api.cricapi.com/v1/match_info?apikey={api_key}&id={match_id}"
     response = requests.get(url)
+    print(response.json())
     return Response(response.json())
 
 # ML model integration views
@@ -73,6 +153,11 @@ def predict_score_view(request):
 def generate_commentary_view(request):
     """Generate AI commentary for a specific ball"""
     try:
+        # print(request.data)
+        # print( request.data.get("wicket"))
+        wicket= request.data.get("wicket")
+        is_wicket = wicket.get("is_wicket") if wicket else False
+        print(is_wicket)
         ball_data = {
             "ball_number": request.data.get("ball_number", "0.0"),
             "batsman": request.data.get("batsman", ""),
@@ -84,7 +169,7 @@ def generate_commentary_view(request):
                 "byes": int(request.data.get("byes", 0)),
                 "leg_byes": int(request.data.get("leg_byes", 0))
             },
-            "wicket": {"is_wicket": request.data.get("is_wicket", False)},
+            "wicket": {"is_wicket": is_wicket},
             "match_context": {
                 "current_score": {
                     "runs": int(request.data.get("current_runs", 0)),
@@ -95,11 +180,21 @@ def generate_commentary_view(request):
             }
         }
         
-        additional_context = request.data.get("additional_context", "")
+        additional_context = request.data.get("additional_context", "Navjoot singh Sidhu  commentary and remove name of commentator")
         commentary = generate_commentary(ball_data, additional_context)
-        return Response({'commentary': commentary})
+        # return JsonResponse({'commentary': commentary})
+        current_time = datetime.now().strftime('%H:%M')
+        
+            # Return a properly structured response
+        response_data = {
+            'commentary': commentary,
+            'ball_data': ball_data,
+            'timestamp': current_time
+        }
+        
+        return JsonResponse(response_data)
     except Exception as e:
-        return Response({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=500)
 
 @api_view(['GET'])
 def live_commentary(request):
@@ -142,8 +237,16 @@ def live_commentary(request):
             
             # Generate commentary
             commentary = generate_commentary(ball_data)
-            return Response({'commentary': commentary, 'ball_data': ball_data})
-        else:
-            return Response({'error': 'No ball data available'}, status=404)
+            print(commentary)
+            current_time = datetime.now().strftime('%H:%M')
+        
+            # Return a properly structured response
+            response_data = {
+                'commentary': commentary,
+                'ball_data': ball_data,
+                'timestamp': current_time
+            }
+        
+            return Response(response_data)
     except Exception as e:
         return Response({'error': str(e)}, status=500)

@@ -22,11 +22,18 @@ const MatchPage = () => {
           apiService.getMatchDetails(id),
           aiPredictionService.getPrediction(id),
         ]);
-
+        const ball_data=matchData.ball_data
+        const commentary=await Promise.all([
+          apiService.generateCommentary(ball_data,"Navjoot singh Sidhu  commentary and remove name of commentator")
+        ])
+        
         setMatch(matchData.match);
-        setCommentary(matchData.commentary);
+        setCommentary(commentary);
+        // setCommentary(matchData.commentary);
         setPrediction(predictionData);
         setLoading(false);
+        console.log(matchData.commentary);
+        console.log(commentary);
       } catch (error) {
         console.error("Error fetching match details:", error);
         setLoading(false);

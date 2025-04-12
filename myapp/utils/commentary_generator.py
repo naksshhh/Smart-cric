@@ -90,9 +90,9 @@ if __name__ == "__main__":
         "ball_number": 4.3,
         "batsman": "Virat Kohli",
         "bowler": "Pat Cummins",
-        "runs_scored": 6,
+        "runs_scored": 0,
         "extras": {"wides": 0, "no_balls": 0, "byes": 0, "leg_byes": 0},
-        "wicket": {"is_wicket": False},
+        "wicket": {"is_wicket": True},
         "match_context": {
             "current_score": {"runs": 45, "wickets": 1},
             "overs": 4.3,

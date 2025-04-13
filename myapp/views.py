@@ -133,21 +133,21 @@ def fetch_live_score():
     response = requests.get(url, params=params)
     return JsonResponse(response.json())
 
-
+match_id=''
 @api_view(['GET'])
 def fetch_match_details(request):
-
+    global match_id
     def get_short_name(team_name):
         words = re.findall(r'\b\w', team_name)
         return ''.join(words).upper()
 
-    match_d = get_ongoing_matches(
+    if len(match_id)==0 : 
+        match_d = get_ongoing_matches(
         api_key=api_key, series_id="d5a498c8-7596-4b93-8ab0-e0efc3345312")
-    match_id = ""
-    if match_d and isinstance(match_d, list):
-        match_id = match_d[0]['id']
-    else:
-        return Response({'error': 'No ongoing matches found'})
+        if match_d and isinstance(match_d, list):
+            match_id = match_d[0]['id']
+        else:
+            return Response({'error': 'No ongoing matches found'})
 
     url = f"https://api.cricapi.com/v1/match_bbb?apikey={api_key}&id={match_id}"
     response = requests.get(url)
@@ -184,8 +184,8 @@ def fetch_match_details(request):
                 'wickets': s.get("w", "-"),
                 'overs': s.get("o", "-")
             })
-            batting_team = "team2"
             print(t2)
+            batting_team = "team2"
             
 
     formatted_match = {

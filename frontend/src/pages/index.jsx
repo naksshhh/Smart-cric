@@ -4,37 +4,59 @@ import LiveMatchCard from "@/components/LiveMatchCard";
 import PastMatchCard from "@/components/PastMatchCard";
 import { apiService } from "@/utils/apiService";
 import { Skeleton } from "@/components/ui/skeleton";
+import isEqual from "lodash.isequal"; // ✅ Import lodash.isequal for deep comparison
 
 const Index = () => {
-  const [liveMatches, setLiveMatches] = useState([]);
+  const [liveMatches, setLiveMatches] = useState({});
   const [pastMatches, setPastMatches] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Initial fetch of live and past matches
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       try {
-        const [liveData,pastData] = await Promise.all([
+        const [liveData, pastData] = await Promise.all([
           apiService.getLiveMatches(),
-          apiService.getPastMatches()
+          apiService.getPastMatches(),
         ]);
 
         setLiveMatches(liveData);
-        // console.log("here you go",liveMatches)
-        setPastMatches(pastData.slice(0, 3)); // Limit to 3 past matches on the homepage
+        setPastMatches(pastData.slice(0, 3));
         setLoading(false);
-        // console.log("Here we go",pastData)
       } catch (error) {
         console.error("Error fetching match data:", error);
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchInitialData();
   }, []);
+
+  // Periodic refresh of live match data every 15s
   useEffect(() => {
-  console.log("Updated liveMatches:", liveMatches);
-  console.log("length",liveMatches.livematches?.length)
-}, [liveMatches]);
+    const fetchLiveMatches = async () => {
+      try {
+        const liveData = await apiService.getLiveMatches();
+
+        // Update only if data changed
+        setLiveMatches(prev =>
+          isEqual(prev, liveData) ? prev : liveData
+        );
+      } catch (error) {
+        console.error("Error refreshing live matches:", error);
+      }
+    };
+
+    const interval = setInterval(fetchLiveMatches, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Debug log
+  useEffect(() => {
+    console.log("Updated liveMatches:", liveMatches);
+    console.log("Match count:", liveMatches.livematches?.length);
+  }, [liveMatches]);
 
   return (
     <div className="min-h-screen bg-gray-50">

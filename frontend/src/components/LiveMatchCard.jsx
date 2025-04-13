@@ -36,6 +36,18 @@ const LiveMatchCard = ({
     }
   };
 
+  const getScoreDisplay = (team) => {
+    if (team?.runs !== "-" && team?.wickets !== "-") {
+      return `${team.runs}/${team.wickets}`;
+    }
+    return "-";
+  };
+
+  const getOversDisplay = (teamKey) => {
+    const team = teamKey === "team1" ? team1 : team2;
+    return battingTeam === teamKey && team?.overs !== "-" ? `(${team.overs})` : "";
+  };
+
   return (
     <Link to={`/match/${id}`}>
       <Card className="cricket-card h-full">
@@ -55,10 +67,10 @@ const LiveMatchCard = ({
               </div>
               <div className="flex items-center">
                 <span className={`score ${battingTeam === "team1" ? "text-cricket-red" : ""}`}>
-                  {`${team1.runs}/${team1.wickets}`}
+                  {getScoreDisplay(team1)}
                 </span>
                 <span className="text-xs text-gray-500 ml-2">
-                  {battingTeam === "team1" ? `(${team1.overs})` : ""}
+                  {getOversDisplay("team1")}
                 </span>
               </div>
             </div>
@@ -72,10 +84,10 @@ const LiveMatchCard = ({
               </div>
               <div className="flex items-center">
                 <span className={`score ${battingTeam === "team2" ? "text-cricket-red" : ""}`}>
-                  {`${team2.runs}/${team2.wickets}`}
+                  {getScoreDisplay(team2)}
                 </span>
                 <span className="text-xs text-gray-500 ml-2">
-                  {battingTeam === "team2" ? `(${team2.overs})` : ""}
+                  {getOversDisplay("team2")}
                 </span>
               </div>
             </div>

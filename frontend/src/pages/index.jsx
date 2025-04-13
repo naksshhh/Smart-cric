@@ -13,14 +13,16 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [liveData, pastData] = await Promise.all([
+        const [liveData,pastData] = await Promise.all([
           apiService.getLiveMatches(),
           apiService.getPastMatches()
         ]);
 
         setLiveMatches(liveData);
+        // console.log("here you go",liveMatches)
         setPastMatches(pastData.slice(0, 3)); // Limit to 3 past matches on the homepage
         setLoading(false);
+        // console.log("Here we go",pastData)
       } catch (error) {
         console.error("Error fetching match data:", error);
         setLoading(false);
@@ -29,6 +31,10 @@ const Index = () => {
 
     fetchData();
   }, []);
+  useEffect(() => {
+  console.log("Updated liveMatches:", liveMatches);
+  console.log("length",liveMatches.livematches?.length)
+}, [liveMatches]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,9 +71,9 @@ const Index = () => {
                 </div>
               ))}
             </div>
-          ) : liveMatches.length > 0 ? (
+          ) : liveMatches.livematches?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {liveMatches.map((match) => (
+              {liveMatches.livematches?.map((match) => (
                 <LiveMatchCard key={match.id} {...match} />
               ))}
             </div>

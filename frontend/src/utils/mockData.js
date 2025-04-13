@@ -189,8 +189,8 @@ export const getMatchDetails = (id) => {
   const ball_data={
     ball_number: 42.4,
     batsman: "Virat Kohli",
-    bowler: "Pat Cummins",
-    runs_scored: 0,
+    bowler: "Mitchel Starc",
+    runs_scored: 1,
     extras: { wides: 0, no_balls: 0, byes: 0, leg_byes: 0 },
     wicket: { is_wicket: true },
     match_context: {

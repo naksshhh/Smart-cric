@@ -32,12 +32,10 @@ Ball {ball_data['ball_number']}: {ball_data['bowler']} bowling to {ball_data['ba
 Result: {outcome}
 
 Commentary should include:
-1. The type and length of delivery (e.g., yorker, bouncer, good length).
-2. Where the ball pitched (e.g., off stump, middle stump).
-3. How {ball_data['batsman']} played the shot.
-4. Details about timing, placement, and field positions.
-5. The crowd's reaction and impact on the match situation.
-6. Focus only on this single delivery.
+1. {ball_data['batsman']} played the shot.
+2. Details about timing.
+3. The crowd's reaction and impact on the match situation.
+4. Focus only on this single delivery.
 
 Additional context: {additional_context}
 
@@ -101,6 +99,6 @@ if __name__ == "__main__":
     }
 
     # Generate and print commentary with additional context
-    commentary = generate_commentary(ball_data,"Navjoot singh Sidhu  commentary and remove name of commentator")
+    commentary = generate_commentary(ball_data,"Attractive English commentary without shot name")
     print("Generated Commentary:")
     print(commentary)

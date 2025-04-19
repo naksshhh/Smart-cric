@@ -22,7 +22,7 @@ const MatchDetails = ({ match, commentary }) => {
           current_runs: parseInt(team1.runs) || 0,
           overs: parseFloat(team1.overs) || 0,
           wickets: parseInt(team1.wickets) || 0,
-          last_five: parseInt(team1.runs)/(parseFloat(team1.overs))*5, // Default value for last 5 overs runs
+          last_five: parseFloat(team1.overs) > 0 ? (parseInt(team1.runs) / parseFloat(team1.overs)) * 5 : 0, // Avoid division by zero
         };
         const features2 = {
           batting_team: team2.name,
@@ -31,29 +31,40 @@ const MatchDetails = ({ match, commentary }) => {
           current_runs: parseInt(team2.runs) || 0,
           overs: parseFloat(team2.overs) || 0,
           wickets: parseInt(team2.wickets) || 0,
-          last_five: parseInt(team2.runs)/(parseFloat(team2.overs))*5, // Default value for last 5 overs runs
+          last_five: parseFloat(team2.overs) > 0 ? (parseInt(team2.runs) / parseFloat(team2.overs)) * 5 : 0, // Avoid division by zero
         };
-        const predictedScoreteam1 = await apiService.predictScore(features1);
-        const predictedScoreteam2 = await apiService.predictScore(features2);
-        //console.log("Team 1:", team1);
-        console.log("Predicted Score Team 1:", features1, predictedScoreteam1);
-        console.log("Predicted Score Team 2:", features2, predictedScoreteam2);
-        //console.log("Team 2:", team2);
-        // console.log(predictedScoreteam1 > predictedScoreteam2 ? team1.name : team2.name);
-        
-        // Format prediction data for PredictionCard
+
+        console.log("Features 1:", features1);
+        console.log("Features 2:", features2);
+
+        let predictedScoreteam1 = null;
+        let predictedScoreteam2 = null;
+
+        if (Object.values(features1).every(value => value !== 0)) {
+          predictedScoreteam1 = await apiService.predictScore(features1);
+          console.log("Predicted Score Team 1:", features1, predictedScoreteam1);
+        } else {
+          console.log("Skipping prediction for Team 1 due to zero values in features.");
+        }
+
+        if (Object.values(features2).every(value => value !== 0)) {
+          predictedScoreteam2 = await apiService.predictScore(features2);
+          console.log("Predicted Score Team 2:", features2, predictedScoreteam2);
+        } else {
+          console.log("Skipping prediction for Team 2 due to zero values in features.");
+        }
         setPrediction({
           team1: {
             name: team1.name,
             shortName: team1.shortName,
             winProbability: 60, // Calculate based on current situation
-            predictedScore: `${predictedScoreteam1} (20.0)`
+            predictedScore: predictedScoreteam1 ? `${predictedScoreteam1} (20.0)` : "Yet to Bat" 
           },
           team2: {
             name: team2.name,
             shortName: team2.shortName,
             winProbability: 40, // 100 - team1 probability
-            predictedScore: `${predictedScoreteam2} (20.0)`
+            predictedScore: predictedScoreteam2 ? `${predictedScoreteam2} (20.0)` : "Yet to Bat"
           },
           predictedWinner: (predictedScoreteam1 > predictedScoreteam2) ? team1.name : team2.name // Based on win probability
         });

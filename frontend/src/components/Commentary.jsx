@@ -23,17 +23,17 @@ const Commentary = ({ commentary }) => {
             {commentary.map((ball, index) => (
               <div key={index} className="commentary-item border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs text-gray-500">{ball.timestamp}</span>
+                  <span className="text-xs text-gray-500">{ball?.timestamp}</span>
                   <span className="text-xs font-medium bg-gray-100 px-2 py-1 rounded">
-                    {`${ball.ball_data.overs} Overs`}
+                    {`${ball?.ball_data?.overs} Overs`}
                   </span>
                 </div>
-                <p className="text-sm leading-relaxed">{ball.commentary}</p>
+                <p className="text-sm leading-relaxed">{ball?.commentary || 'No commentary'}</p>
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-xs text-cricket-green font-medium">
-                    {`${ball.ball_data.current_runs}/${ball.ball_data.current_wickets}`}
+                    {`${ball?.ball_data?.match_context?.current_score?.runs}/${ball?.ball_data?.match_context?.current_score?.wickets}`}
                   </span>
-                  {ball.ball_data.wicket?.is_wicket && (
+                  {ball?.ball_data?.wicket?.is_wicket && (
                     <span className="text-xs text-cricket-red font-medium">WICKET!</span>
                   )}
                 </div>

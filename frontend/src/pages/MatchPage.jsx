@@ -29,14 +29,26 @@ const MatchPage = () => {
           batsman: "Batsman",
           bowler: "Bowler",
           runs_scored: parseInt(matchData.team1.runs),
-          current_runs: parseInt(matchData.team1.runs),
-          current_wickets: parseInt(matchData.team1.wickets),
-          overs: parseFloat(matchData.team1.overs),
+          extras: {
+            wides: 0,
+            no_balls: 0,
+            byes: 0,
+            leg_byes: 0,
+          },
+          wicket: { is_wicket: false },
+          match_context: {
+            current_score: {
+              runs: parseInt(matchData.team1.runs),
+              wickets: parseInt(matchData.team1.wickets),
+            },
+            overs: parseFloat(matchData.team1.overs),
+            target: matchData.target ? parseInt(matchData.target) : 0,
+          },
         };
 
         const commentaryData = await apiService.generateCommentary(
           ballData,
-          "Navjoot singh Sidhu style commentary"
+          "Attractive english commentary without short type and ball type "
         );
         setCommentary([commentaryData]);
 

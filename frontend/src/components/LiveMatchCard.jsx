@@ -98,7 +98,7 @@ const LiveMatchCard = ({
             <p className="text-xs text-gray-500">{venue}</p>
             {result && <p className="text-sm font-medium mt-1">{result}</p>}
             {status === "live" && (
-              <Badge variant="outline" className="mt-2 bg-cricket-green/10 text-cricket-green border-cricket-green">
+              <Badge variant="outline" className="mt-2 bg-cricket-red/10 text-cricket-green border-cricket-green border-red-700 text-red-700">
                 Watch Live
               </Badge>
             )}

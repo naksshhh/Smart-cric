@@ -25,4 +25,5 @@ urlpatterns = [
     path('api/predict-score/', views.predict_score_view, name='predict_score'),
     path('api/commentary/', views.generate_commentary_view, name='commentary'),
     path('api/match-details/', views.get_match_details, name='match-details'),
+    path('api/match/<str:match_id>/', views.get_single_match, name='get_single_match'),
 ]

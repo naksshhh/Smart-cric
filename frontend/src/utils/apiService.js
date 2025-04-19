@@ -1,32 +1,20 @@
-import { mockData, getMatchDetails } from "@/utils/mockData";
-import axios from 'axios';
+import axios from "axios";
+import { getMatchDetails } from "./mockData";
 
-// const dotenv=require('dotenv');
-// dotenv.config();
+const API_BASE_URL = "http://localhost:8000";
 
-const API_BASE_URL='http://localhost:8000/';
-// This is a mock API service that simulates fetching data from an API
 export const apiService = {
   getLiveMatches: async () => {
-    // Simulate API call delay
-    const response= await axios.get(`${API_BASE_URL}/api/fetch-live-score`);
-    // await new Promise((resolve) => setTimeout(resolve, 500));
-    return response.data;
-    // return mockData.liveMatches;
-  },
-
-  generateCommentary:async(ballData,additionalContext)=>{
-    // Simulate API call delay
-    const response= await axios.post(`${API_BASE_URL}/api/commentary/`,{
-      ...ballData,
-      additional_context: additionalContext
-      });
-      // await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/fetch-live-score/`);
       return response.data;
+    } catch (error) {
+      console.error("Error fetching live matches:", error);
+      return { livematches: [] };
+    }
   },
 
   getPastMatches: async () => {
-    // Simulate API call delay
     try {
       const response = await axios.get(`${API_BASE_URL}/api/match-details/`);
       return response.data.pastMatches;
@@ -34,18 +22,38 @@ export const apiService = {
       console.error("Error fetching match details:", error);
       return [];
     }
-    // await new Promise((resolve) => setTimeout(resolve, 500));
-    // return mockData.pastMatches;
+  },
+
+  getMatchDetails: async (id) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/match/${id}/`);
+      return response.data.match;
+    } catch (error) {
+      console.error("Error fetching single match details:", error);
+      throw error;
+    }
   },
 
   predictScore: async (features) => {
-    const response = await axios.post(`${API_BASE_URL}/api/predict-score/`, features);
-    return response.data.predicted_score;
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/predict-score/`, features);
+      return response.data.predicted_score;
+    } catch (error) {
+      console.error("Error predicting score:", error);
+      throw error;
+    }
   },
- 
-  getMatchDetails: async (id) => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    return getMatchDetails(id);
+
+  generateCommentary: async (ballData, style = "") => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/commentary/`, {
+        ...ballData,
+        additional_context: style
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error generating commentary:", error);
+      throw error;
+    }
   }
-};
+}

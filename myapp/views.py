@@ -8,10 +8,12 @@ from dotenv import load_dotenv
 from myapp.ml_models.prediction_service import predict_score
 from myapp.utils.commentary_generator import generate_commentary
 from myapp.utils.fetch_match_id import get_ongoing_matches
+from myapp.utils.get_short_name import get_short_name
 from datetime import datetime
 import re
 
 load_dotenv()
+
 
 # Basic template views
 
@@ -91,7 +93,7 @@ def get_match_details(request):
                             'overs': t2_overs
                         },
                         'status': 'completed',
-                        'venue': "Unknoown",
+                        'venue': match_date,
                         'time': '',
                         'series': 'IPL 2025',
                         'result': match.get('status')
@@ -137,9 +139,6 @@ match_id=''
 @api_view(['GET'])
 def fetch_match_details(request):
     global match_id
-    def get_short_name(team_name):
-        words = re.findall(r'\b\w', team_name)
-        return ''.join(words).upper()
 
     if len(match_id)==0 : 
         match_d = get_ongoing_matches(
@@ -152,7 +151,7 @@ def fetch_match_details(request):
     url = f"https://api.cricapi.com/v1/match_bbb?apikey={api_key}&id={match_id}"
     response = requests.get(url)
     data = response.json()
-
+    print(data)
     if 'data' not in data:
         return JsonResponse({'error': 'Invalid API response'}, status=400)
 
@@ -211,10 +210,112 @@ def fetch_match_details(request):
         'result': match.get('status', ''),
         'battingTeam': batting_team
     }
+    print(formatted_match)
 
     return JsonResponse({'livematches': [formatted_match]})
     # except Exception as e:
     #     return JsonResponse({'error': str(e)}, status=500)
+
+
+@api_view(['GET'])
+def get_single_match(request, match_id):
+    """Fetch details for a specific match by ID"""
+    try:
+        if not api_key:
+            # Mock data for development
+            mock_match = {
+                'id': match_id,
+                'team1': {
+                    'name': 'Mumbai Indians',
+                    'shortName': 'MI',
+                    'runs': '180',
+                    'wickets': '4',
+                    'overs': '20.0'
+                },
+                'team2': {
+                    'name': 'Chennai Super Kings',
+                    'shortName': 'CSK',
+                    'runs': '176',
+                    'wickets': '6',
+                    'overs': '20.0'
+                },
+                'status': "completed",
+                'venue': 'Wankhede Stadium, Mumbai',
+                'time': '2025-04-18T14:00:00.000Z',
+                'series': 'Indian Premier League 2025',
+                'result': 'Mumbai Indians won by 4 wickets',
+                'toss': 'Mumbai Indians won the toss and elected to bowl first'
+            }
+            return JsonResponse({'match': mock_match})
+
+        print(f"Fetching match details for ID: {match_id}")
+        url = f"https://api.cricapi.com/v1/match_info?apikey={api_key}&id={match_id}"
+        response = requests.get(url)
+        print(f"API Response Status: {response.status_code}")
+        data = response.json()
+        print(f"API Response Data: {data}")
+
+        if 'data' not in data:
+            return JsonResponse({'error': 'Invalid API response'}, status=400)
+
+        match = data['data']
+        teams = match.get('teams', ['Team A', 'Team B'])
+        team1_name = teams[0]
+        team2_name = teams[1]
+        team1_short = get_short_name(team1_name)
+        team2_short = get_short_name(team2_name)
+
+        score_data = match.get("score", [])
+        t1 = {'runs': '-', 'wickets': '-', 'overs': '-'}
+        t2 = {'runs': '-', 'wickets': '-', 'overs': '-'}
+        
+        for score in score_data:
+            inning = score.get('inning', '').lower()
+            if team1_name.lower() in inning:
+                t1.update({
+                    'runs': score.get('r', '-'),
+                    'wickets': score.get('w', '-'),
+                    'overs': score.get('o', '-')
+                })
+            elif team2_name.lower() in inning:
+                t2.update({
+                    'runs': score.get('r', '-'),
+                    'wickets': score.get('w', '-'),
+                    'overs': score.get('o', '-')
+                })
+
+        formatted_match = {
+            'id': match.get('id'),
+            'team1': {
+                'name': team1_name,
+                'shortName': team1_short,
+                'runs': t1['runs'],
+                'wickets': t1['wickets'],
+                'overs': t1['overs']
+            },
+            'team2': {
+                'name': team2_name,
+                'shortName': team2_short,
+                'runs': t2['runs'],
+                'wickets': t2['wickets'],
+                'overs': t2['overs']
+            },
+            'status': "live" if not match.get("matchEnded", False) else "completed",
+            'venue': match.get('venue', 'Unknown'),
+            'time': match.get('dateTimeGMT', ''),
+            'series': match.get('series', 'Indian Premier League 2025'),
+            'result': match.get('status', ''),
+            'toss': f"{match.get('tossWinner', 'Unknown')} won the toss and elected to {match.get('tossChoice', 'bat')} first",
+            'matchWinner': match.get('matchWinner', '')
+        }
+
+        print("Formatted match data:", formatted_match)
+        return JsonResponse({'match': formatted_match})
+    except Exception as e:
+        import traceback
+        print("Error in get_single_match:", str(e))
+        print(traceback.format_exc())
+        return JsonResponse({'error': str(e)}, status=500)
 
 # ML model integration views
 
@@ -224,9 +325,41 @@ def predict_score_view(request):
     """Predict final score based on current match situation"""
     try:
         features = request.data
+        required_fields = ['batting_team', 'bowling_team', 'city', 'current_runs', 'overs', 'wickets', 'last_five']
+        
+        # Validate required fields
+        missing_fields = [field for field in required_fields if field not in features]
+        if missing_fields:
+            return Response({
+                'error': f'Missing required fields: {", ".join(missing_fields)}'
+            }, status=400)
+        print(features)
+        # Validate numeric fields
+        try:
+            features['current_runs'] = int(features['current_runs'])
+            features['wickets'] = int(features['wickets'])
+            features['overs'] = float(features['overs'])
+            features['last_five'] = int(features['last_five'])
+        except (ValueError, TypeError):
+            return Response({
+                'error': 'Invalid numeric values for runs, wickets, overs, or last_five'
+            }, status=400)
+            
+        # Calculate additional features
+        features['balls_left'] = max(0, 120 - int(features['overs'] * 6))
+        features['wickets_left'] = max(0, 10 - features['wickets'])
+        features['crr'] = features['current_runs'] / features['overs'] if features['overs'] > 0 else 0
+        
         prediction = predict_score(features)
-        return Response({'predicted_score': prediction[0]})
+        predicted_score = int(round(prediction[0]))  # Round to nearest integer
+        
+        return Response({
+            'predicted_score': predicted_score,
+            'current_score': features['current_runs'],
+            'projected_runs': predicted_score - features['current_runs']
+        })
     except Exception as e:
+        print(f"Error in predict_score_view: {str(e)}")
         return Response({'error': str(e)}, status=500)
 
 

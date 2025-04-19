@@ -3,44 +3,62 @@ import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import MatchDetails from "@/components/MatchDetails";
 import { apiService } from "@/utils/apiService";
-import { aiPredictionService } from "@/utils/aiPrediction";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const MatchPage = () => {
   const { id } = useParams();
   const [match, setMatch] = useState(null);
   const [commentary, setCommentary] = useState([]);
-  const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (!id) return;
+        setLoading(true);
+        setError(null);
 
-        const [matchData, predictionData] = await Promise.all([
-          apiService.getMatchDetails(id),
-          aiPredictionService.getPrediction(id),
-        ]);
-        const ball_data=matchData.ball_data
-        const commentary=await Promise.all([
-          apiService.generateCommentary(ball_data,"Navjoot singh Sidhu  commentary and remove name of commentator")
-        ])
-        
-        setMatch(matchData.match);
-        setCommentary(commentary);
-        // setCommentary(matchData.commentary);
-        setPrediction(predictionData);
+        // Fetch match details
+        const matchData = await apiService.getMatchDetails(id);
+        setMatch(matchData);
+
+        // Generate ball-by-ball commentary
+        const ballData = {
+          ball_number: matchData.team1.overs,
+          batsman: "Batsman",
+          bowler: "Bowler",
+          runs_scored: parseInt(matchData.team1.runs),
+          current_runs: parseInt(matchData.team1.runs),
+          current_wickets: parseInt(matchData.team1.wickets),
+          overs: parseFloat(matchData.team1.overs),
+        };
+
+        const commentaryData = await apiService.generateCommentary(
+          ballData,
+          "Navjoot singh Sidhu style commentary"
+        );
+        setCommentary([commentaryData]);
+
         setLoading(false);
-        console.log(matchData.commentary);
-        console.log(commentary);
       } catch (error) {
         console.error("Error fetching match details:", error);
+        setError("Failed to load match details");
         setLoading(false);
       }
     };
 
     fetchData();
+
+    // Set up periodic refresh for live matches
+    let interval;
+    if (match?.status === "live") {
+      interval = setInterval(fetchData, 30000); // Refresh every 30 seconds for live matches
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [id]);
 
   return (
@@ -56,8 +74,15 @@ const MatchPage = () => {
               <Skeleton className="h-96 rounded-lg" />
             </div>
           </div>
-        ) : match && prediction ? (
-          <MatchDetails match={match} commentary={commentary} prediction={prediction} />
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-xl text-red-600">{error}</p>
+            <a href="/" className="text-cricket-green hover:underline mt-4 inline-block">
+              Return to homepage
+            </a>
+          </div>
+        ) : match ? (
+          <MatchDetails match={match} commentary={commentary} />
         ) : (
           <div className="text-center py-20">
             <p className="text-xl text-gray-600">Match details not found</p>

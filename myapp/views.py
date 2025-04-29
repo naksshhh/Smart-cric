@@ -333,13 +333,12 @@ def predict_score_view(request):
             return Response({
                 'error': f'Missing required fields: {", ".join(missing_fields)}'
             }, status=400)
-        print(features)
         # Validate numeric fields
         try:
             features['current_runs'] = int(features['current_runs'])
             features['wickets'] = int(features['wickets'])
             features['overs'] = float(features['overs'])
-            features['last_five'] = int(features['last_five'])
+            features['last_five'] = int(features['last_five']) if features['last_five'] is not None else 0
         except (ValueError, TypeError):
             return Response({
                 'error': 'Invalid numeric values for runs, wickets, overs, or last_five'
@@ -805,6 +804,7 @@ def predict_score_view(request):
             }, status=400)
         # Validate numeric fields
         try:
+            print(features)
             features['current_runs'] = int(features['current_runs'])
             features['wickets'] = int(features['wickets'])
             features['overs'] = float(features['overs'])
@@ -843,7 +843,6 @@ def generate_commentary_view(request):
 
         # Safely construct ball data with default values
         try:
-            print("good")
             ball_data = {
                 "ball_number": request.data.get("ball_number", "0.0"),
                 "batsman": request.data.get("batsman", ""),

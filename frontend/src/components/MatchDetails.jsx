@@ -57,13 +57,13 @@ const MatchDetails = ({ match, commentary }) => {
           team1: {
             name: team1.name,
             shortName: team1.shortName,
-            winProbability: 60, // Calculate based on current situation
+            winProbability: 88, // Calculate based on current situation
             predictedScore: predictedScoreteam1 ? `${predictedScoreteam1} (20.0)` : "Yet to Bat" 
           },
           team2: {
             name: team2.name,
             shortName: team2.shortName,
-            winProbability: 40, // 100 - team1 probability
+            winProbability: 12, // 100 - team1 probability
             predictedScore: predictedScoreteam2 ? `${predictedScoreteam2} (20.0)` : "Yet to Bat"
           },
           predictedWinner: (predictedScoreteam1 > predictedScoreteam2) ? team1.name : team2.name // Based on win probability

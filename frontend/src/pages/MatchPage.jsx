@@ -11,6 +11,9 @@ const MatchPage = () => {
   const [commentary, setCommentary] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [bowlingStats, setBowlingStats] = useState(null);
+  const [powerplays, setPowerplays] = useState(null);
+  const [fallOfWickets, setFallOfWickets] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,7 +53,15 @@ const MatchPage = () => {
           ballData,
           "Attractive english commentary without short type and ball type "
         );
+        // console.log("Generated Commentary:", commentaryData);
         setCommentary([commentaryData]);
+        const scoredata = await apiService.getScoreDetail(id);
+        setBowlingStats(scoredata.bowlingStats);
+        setPowerplays(scoredata.powerplays);
+        setFallOfWickets(scoredata.fallOfWickets);
+        // console.log("Bowling Stats:", scoredata.bowlingStats);
+        // console.log("Powerplays:", scoredata.powerplays);
+        // console.log("Fall of Wickets:", scoredata.fallOfWickets);
 
         setLoading(false);
       } catch (error) {
@@ -94,7 +105,9 @@ const MatchPage = () => {
             </a>
           </div>
         ) : match ? (
-          <MatchDetails match={match} commentary={commentary} />
+          <MatchDetails match={match} commentary={commentary} bowlingStats={bowlingStats}
+            powerplays={powerplays}
+            fallOfWickets={fallOfWickets} />
         ) : (
           <div className="text-center py-20">
             <p className="text-xl text-gray-600">Match details not found</p>

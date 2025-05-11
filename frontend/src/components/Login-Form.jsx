@@ -2,11 +2,20 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+// import { Button } from 'your-button-component-path';  // Adjust the path if needed
+import { useNavigate } from 'react-router-dom';
 
 function LoginForm({
   className,
   ...props
 }) {
+  const navigate = useNavigate();
+  const handleLogin = () => {
+    // Add your login logic here (e.g., authenticate the user)
+    
+    // Once login is successful, redirect to the home page
+    navigate('/'); // This redirects to the home page
+  };
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
@@ -29,7 +38,7 @@ function LoginForm({
           </div>
           <Input id="password" type="password" required />
         </div>
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" onClick={handleLogin}>
           Login
         </Button>
       </div>

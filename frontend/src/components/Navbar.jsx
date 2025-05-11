@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home, Clock, LogIn } from "lucide-react";
+import { Home, Clock, LogIn, LogOut } from "lucide-react";
 
 const Navbar = () => {
   return (
@@ -23,8 +23,8 @@ const Navbar = () => {
 
           <div>
             <Link to="/login" className="flex items-center space-x-2 text-cricket-green">
-              <LogIn className="size-5" />
-              <span>Login</span>
+              <LogOut className="size-5" />
+              <span>Logout</span>
             </Link>
           </div>
         </div>

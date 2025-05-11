@@ -1,5 +1,6 @@
 import axios from "axios";
-import { getMatchDetails } from "./mockData";
+import { getMatchDetails, mockData } from "./mockData";
+import { mockCommentary } from "./mockCommentary";
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -33,6 +34,21 @@ export const apiService = {
       throw error;
     }
   },
+  getScoreDetail: async (id) => {
+    try {
+      // const response = await axios.get(`${API_BASE_URL}/api/match/${id}/`);
+      return {
+        // match: details.match,
+        // commentary: mockCommentary,
+        bowlingStats: mockData.bowlingStats,
+        powerplays: mockData.powerplays,
+        fallOfWickets: mockData.fallOfWickets
+      };;
+    } catch (error) {
+      console.error("Error fetching single match details:", error);
+      throw error;
+    }
+  },
 
   predictScore: async (features) => {
     try {
@@ -50,7 +66,11 @@ export const apiService = {
         ...ballData,
         additional_context: style
       });
-      return response.data;
+      // return response.data;
+      return {
+        // match: getMatchDetails(id).match,
+        commentary: mockCommentary
+      };
     } catch (error) {
       console.error("Error generating commentary:", error);
       throw error;

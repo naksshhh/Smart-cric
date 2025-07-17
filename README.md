@@ -1,6 +1,10 @@
 # 🏏 Smart-Cricket
 
 **Smart-Cricket** is an AI-powered cricket analytics platform offering real-time insights, match predictions, and dynamic commentary. Built using ReactJS, Django, and Python, it enhances the cricket-watching experience with intelligent simulations and predictions.
+---
+### 🌐 Live Demo
+
+<img width="1371" height="770" alt="image" src="https://github.com/user-attachments/assets/15bd13fd-f29e-48f5-97ab-b65667e46dea" />
 
 ---
 
@@ -93,8 +97,5 @@ GitHub: [@naksshhh](https://github.com/naksshhh)
 ---
 
 
-### 🌐 Live Demo
-
-<img width="1371" height="770" alt="image" src="https://github.com/user-attachments/assets/15bd13fd-f29e-48f5-97ab-b65667e46dea" />
 
 

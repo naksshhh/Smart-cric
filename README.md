@@ -85,9 +85,9 @@ npm run dev
 
 ### 👨‍💻 Author
 
-**Shubham Agrawal**  
+- **Shubham Agrawal**  
 GitHub: [@Shubham060772](https://github.com/Shubham060772) 
-**Nakshatra Kanchan**  
+- **Nakshatra Kanchan**  
 GitHub: [@naksshhh](https://github.com/naksshhh) 
 
 ---
@@ -95,5 +95,6 @@ GitHub: [@naksshhh](https://github.com/naksshhh)
 
 ### 🌐 Live Demo
 
-<img width="400" height="400" alt="image" src="https://github.com/user-attachments/assets/9167c04c-1625-4aba-aae2-797f2548c980" />
+<img width="1371" height="770" alt="image" src="https://github.com/user-attachments/assets/15bd13fd-f29e-48f5-97ab-b65667e46dea" />
+
 
